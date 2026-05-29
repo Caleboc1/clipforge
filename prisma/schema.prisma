@@ -1,0 +1,72 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String        @id @default(cuid())
+  email        String        @unique
+  password     String
+  name         String?
+  isAdmin      Boolean       @default(false)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  subscription Subscription?
+  videos       Video[]
+  usage        Usage[]
+}
+
+model Subscription {
+  id                 String    @id @default(cuid())
+  userId             String    @unique
+  plan               String    @default("free")   // "free" | "pro"
+  status             String    @default("active")  // "active" | "inactive" | "cancelled"
+  paystackCustomerId String?
+  paystackSubCode    String?
+  currentPeriodEnd   DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Video {
+  id        String   @id @default(cuid())
+  userId    String
+  url       String
+  title     String?
+  status    String   @default("pending")  // "pending" | "processing" | "done" | "failed"
+  error     String?
+  duration  Float?
+  filePath  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  clips     Clip[]
+}
+
+model Clip {
+  id        String   @id @default(cuid())
+  videoId   String
+  start     Float
+  end       Float
+  hook      String?
+  reason    String?
+  filePath  String?
+  url       String?
+  createdAt DateTime @default(now())
+  video     Video    @relation(fields: [videoId], references: [id], onDelete: Cascade)
+}
+
+model Usage {
+  id               String   @id @default(cuid())
+  userId           String
+  videoId          String?
+  minutesProcessed Float    @default(0)
+  costEstimate     Float    @default(0)
+  createdAt        DateTime @default(now())
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
