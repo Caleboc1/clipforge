@@ -1,7 +1,9 @@
 import OpenAI from 'openai'
 import fs from 'fs'
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+function getOpenAI() {
+  return new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+}
 
 const WHISPER_MAX_BYTES = 24 * 1024 * 1024 // 24MB — stay under the 25MB hard limit
 
@@ -26,7 +28,7 @@ async function callWhisper(audioPath: string) {
 
   const buffer = fs.readFileSync(audioPath)
   const file = new File([buffer], 'audio.mp3', { type: 'audio/mpeg' })
-  return openai.audio.transcriptions.create({
+  return getOpenAI().audio.transcriptions.create({
     file,
     model: 'whisper-1',
     response_format: 'verbose_json',
@@ -69,7 +71,7 @@ export async function detectViralClips(segments: TranscriptSegment[]): Promise<C
     .map(s => `[${s.start.toFixed(1)}s–${s.end.toFixed(1)}s]: ${s.text}`)
     .join('\n')
 
-  const response = await openai.chat.completions.create({
+  const response = await getOpenAI().chat.completions.create({
     model: 'gpt-4o-mini',
     messages: [
       {
