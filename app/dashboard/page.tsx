@@ -97,14 +97,29 @@ export default function DashboardPage() {
     router.push('/login')
   }
 
-  const handleUpgrade = async () => {
-    const res = await fetch('/api/paystack/subscribe', { method: 'POST' })
+  const handleUpgrade = async (plan: 'pro' | 'plus') => {
+    const res = await fetch('/api/paystack/subscribe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ plan })
+    })
     const data = await res.json()
     if (data.authorizationUrl) window.location.href = data.authorizationUrl
   }
 
-  const isPro = user?.subscription?.plan === 'pro' && user?.subscription?.status === 'active'
+  const currentPlan = user?.subscription?.status === 'active' ? user.subscription.plan : 'free'
+  const isPro = currentPlan === 'pro'
+  const isPlus = currentPlan === 'plus'
+  const isPaid = isPro || isPlus
   const processingCount = videos.filter(v => v.status === 'pending' || v.status === 'processing').length
+
+  const selectedVideoId = selectedVideo?.id ?? null
+  const planLabel = isPlus ? 'Plus' : isPro ? 'Pro' : 'Free'
+  const planLimitsText = isPlus
+    ? '30 videos/month · Longer videos'
+    : isPro
+    ? '10 videos/month · Longer videos'
+    : '2 free videos/month · Max 5 min each'
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -116,13 +131,17 @@ export default function DashboardPage() {
             <span className="font-bold">ClipForge</span>
           </Link>
           <div className="flex items-center gap-3">
-            <Badge variant={isPro ? 'success' : 'secondary'} className="hidden sm:flex">
-              {isPro ? 'Pro' : 'Free'}
+            <Badge variant={isPaid ? 'success' : 'secondary'} className="hidden sm:flex">
+              {planLabel}
             </Badge>
-            {!isPro && (
-              <Button size="sm" onClick={handleUpgrade} className="bg-violet-600 hover:bg-violet-700 text-white hidden sm:flex">
+            {!isPlus && (
+              <Button
+                size="sm"
+                onClick={() => handleUpgrade(isPro ? 'plus' : 'pro')}
+                className={isPro ? 'bg-pink-600 hover:bg-pink-700 text-white hidden sm:flex' : 'bg-violet-600 hover:bg-violet-700 text-white hidden sm:flex'}
+              >
                 <Zap className="w-3 h-3" />
-                Upgrade
+                {isPro ? 'Upgrade to Plus' : 'Upgrade'}
               </Button>
             )}
             {user?.isAdmin && (
@@ -144,10 +163,13 @@ export default function DashboardPage() {
             Welcome{user?.name ? `, ${user.name}` : ''}
           </h1>
           <p className="text-muted-foreground text-sm">
-            {isPro ? '30 videos/month · Longer videos' : '2 free videos/month · Max 5 min each'}
-            {!isPro && (
-              <button onClick={handleUpgrade} className="ml-2 text-violet-400 hover:underline text-sm">
-                Upgrade to Pro →
+            {planLimitsText}
+            {!isPlus && (
+              <button
+                onClick={() => handleUpgrade(isPro ? 'plus' : 'pro')}
+                className="ml-2 text-violet-400 hover:underline text-sm"
+              >
+                {isPro ? 'Upgrade to Plus →' : 'Upgrade to Pro →'}
               </button>
             )}
           </p>
@@ -248,7 +270,7 @@ export default function DashboardPage() {
                   <VideoCard
                     key={v.id}
                     video={v}
-                    selected={selectedVideo?.id === v.id}
+                    selected={selectedVideoId === v.id}
                     onSelect={id => {
                       const found = videos.find(x => x.id === id)
                       if (found) setSelectedVideo(found)

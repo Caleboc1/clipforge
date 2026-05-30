@@ -3,6 +3,8 @@ import fs from 'fs'
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 
+const WHISPER_MAX_BYTES = 24 * 1024 * 1024 // 24MB — stay under the 25MB hard limit
+
 export interface TranscriptSegment {
   start: number
   end: number
@@ -16,22 +18,48 @@ export interface ClipSuggestion {
   reason: string
 }
 
-export async function transcribeAudio(audioPath: string): Promise<TranscriptSegment[]> {
-  const audioStream = fs.createReadStream(audioPath)
+async function callWhisper(audioPath: string) {
+  const stat = fs.statSync(audioPath)
+  if (stat.size > WHISPER_MAX_BYTES) {
+    throw new Error(`Audio file is ${(stat.size / 1024 / 1024).toFixed(1)}MB — exceeds Whisper's 25MB limit. Use a shorter video.`)
+  }
 
-  const response = await openai.audio.transcriptions.create({
-    file: audioStream,
+  const buffer = fs.readFileSync(audioPath)
+  const file = new File([buffer], 'audio.mp3', { type: 'audio/mpeg' })
+  return openai.audio.transcriptions.create({
+    file,
     model: 'whisper-1',
     response_format: 'verbose_json',
     timestamp_granularities: ['segment']
   })
+}
 
-  const segments = (response as any).segments || []
-  return segments.map((seg: any) => ({
-    start: seg.start,
-    end: seg.end,
-    text: seg.text.trim()
-  }))
+export async function transcribeAudio(audioPath: string): Promise<TranscriptSegment[]> {
+  let lastErr: unknown
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      const response = await callWhisper(audioPath)
+      const segments = (response as any).segments || []
+      return segments.map((seg: any) => ({
+        start: seg.start,
+        end: seg.end,
+        text: seg.text.trim()
+      }))
+    } catch (err: any) {
+      lastErr = err
+      if (err?.status === 429 && err?.error?.code === 'insufficient_quota') {
+        throw new Error('OpenAI quota exceeded. Add billing credits at platform.openai.com/billing.')
+      }
+      const isRetryable =
+        err?.cause?.code === 'ECONNRESET' ||
+        err?.name === 'APIConnectionError' ||
+        err?.status === 429 ||
+        err?.status >= 500
+      if (!isRetryable || attempt === 3) throw err
+      await new Promise(r => setTimeout(r, attempt * 2000))
+    }
+  }
+  throw lastErr
 }
 
 export async function detectViralClips(segments: TranscriptSegment[]): Promise<ClipSuggestion[]> {

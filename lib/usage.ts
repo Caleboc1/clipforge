@@ -51,8 +51,12 @@ export async function checkUsageLimit(
     }
   }
 
-  if (plan === 'pro' && videosProcessed >= 30) {
-    return { allowed: false, reason: 'Pro plan: 30 videos/month limit reached.' }
+  if (plan === 'pro' && videosProcessed >= 10) {
+    return { allowed: false, reason: 'Pro plan: 10 videos/month limit reached.' }
+  }
+
+  if (plan === 'plus' && videosProcessed >= 30) {
+    return { allowed: false, reason: 'Plus plan: 30 videos/month limit reached.' }
   }
 
   return { allowed: true }

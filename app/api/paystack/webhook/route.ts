@@ -23,17 +23,18 @@ export async function POST(req: NextRequest) {
       const userId = data.metadata?.userId
       if (!userId) break
 
+      const plan = data.metadata?.plan === 'plus' ? 'plus' : 'pro'
       await prisma.subscription.upsert({
         where: { userId },
         create: {
           userId,
-          plan: 'pro',
+          plan,
           status: 'active',
           paystackCustomerId: data.customer?.customer_code,
           paystackSubCode: data.subscription_code || null
         },
         update: {
-          plan: 'pro',
+          plan,
           status: 'active',
           paystackCustomerId: data.customer?.customer_code,
           paystackSubCode: data.subscription_code || null
