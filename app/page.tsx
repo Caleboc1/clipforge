@@ -113,8 +113,7 @@ export default function LandingPage() {
       </section>
 
       {/* Pricing */}
-      <section id="pricing" className="py-24 px-6 relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-violet-900/20 via-background to-background pointer-events-none" />
+      <section id="pricing" className="py-24 px-6">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-16 space-y-3">
             <h2 className="text-3xl md:text-4xl font-bold">Simple pricing</h2>
