@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Scissors, Zap, TrendingUp, Shield, Check } from 'lucide-react'
+import { PricingCards } from '@/components/PricingCards'
 
 export default function LandingPage() {
   return (
@@ -112,72 +113,14 @@ export default function LandingPage() {
       </section>
 
       {/* Pricing */}
-      <section id="pricing" className="py-24 px-6">
+      <section id="pricing" className="py-24 px-6 relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-violet-900/20 via-background to-background pointer-events-none" />
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-16 space-y-3">
             <h2 className="text-3xl md:text-4xl font-bold">Simple pricing</h2>
             <p className="text-muted-foreground">Start free, upgrade when you need more</p>
           </div>
-          <div className="grid md:grid-cols-3 gap-8">
-            {/* Free */}
-            <div className="rounded-2xl border border-border p-8 space-y-6">
-              <div>
-                <h3 className="text-xl font-bold">Free</h3>
-                <p className="text-4xl font-extrabold mt-2">₦0<span className="text-base text-muted-foreground font-normal">/mo</span></p>
-              </div>
-              <ul className="space-y-3">
-                {['2 videos/month', 'Max 5 min per video', '3–5 clips per video', 'Vertical 9:16 export'].map(f => (
-                  <li key={f} className="flex items-center gap-2 text-sm">
-                    <Check className="w-4 h-4 text-green-400 shrink-0" />
-                    {f}
-                  </li>
-                ))}
-              </ul>
-              <Link href="/signup" className="block">
-                <Button variant="outline" className="w-full">Get started</Button>
-              </Link>
-            </div>
-
-            {/* Pro */}
-            <div className="rounded-2xl border-2 border-violet-500 p-8 space-y-6 relative">
-              <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-violet-600">Most popular</Badge>
-              <div>
-                <h3 className="text-xl font-bold">Pro</h3>
-                <p className="text-4xl font-extrabold mt-2">₦5,000<span className="text-base text-muted-foreground font-normal">/mo</span></p>
-              </div>
-              <ul className="space-y-3">
-                {['10 videos/month', 'Longer videos supported', '3–5 clips per video', 'Vertical 9:16 export', 'Priority processing'].map(f => (
-                  <li key={f} className="flex items-center gap-2 text-sm">
-                    <Check className="w-4 h-4 text-violet-400 shrink-0" />
-                    {f}
-                  </li>
-                ))}
-              </ul>
-              <Link href="/signup" className="block">
-                <Button className="w-full bg-violet-600 hover:bg-violet-700 text-white">Upgrade to Pro</Button>
-              </Link>
-            </div>
-
-            {/* Plus */}
-            <div className="rounded-2xl border-2 border-pink-500 p-8 space-y-6 relative">
-              <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-pink-600">Best value</Badge>
-              <div>
-                <h3 className="text-xl font-bold">Plus</h3>
-                <p className="text-4xl font-extrabold mt-2">₦20,000<span className="text-base text-muted-foreground font-normal">/mo</span></p>
-              </div>
-              <ul className="space-y-3">
-                {['30 videos/month', 'Longer videos supported', '3–5 clips per video', 'Vertical 9:16 export', 'Priority processing'].map(f => (
-                  <li key={f} className="flex items-center gap-2 text-sm">
-                    <Check className="w-4 h-4 text-pink-400 shrink-0" />
-                    {f}
-                  </li>
-                ))}
-              </ul>
-              <Link href="/signup" className="block">
-                <Button className="w-full bg-pink-600 hover:bg-pink-700 text-white">Upgrade to Plus</Button>
-              </Link>
-            </div>
-          </div>
+          <PricingCards />
         </div>
       </section>
 
